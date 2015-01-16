@@ -1,0 +1,8 @@
+#Compiler Stuff
+*.o
+*.map
+*.elf
+*.bin
+
+#Vim files
+*.swp
