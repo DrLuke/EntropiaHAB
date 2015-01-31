@@ -12,9 +12,10 @@ GDB		:= $(PREFIX)-gdb
 BINARY = src/tracker
 
 OBJS += ${BINARY}.o
+OBJS += src/ax25.o
 
 #************* CFlags
-CFLAGS += -Wall -g -O2
+CFLAGS += -Wall -g -O2 -std=c99
 
 CFLAGS += -DSTM32F0
 
