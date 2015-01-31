@@ -1,7 +1,10 @@
-void ax25_constructPacket(char** dest, char** source, char** info, int infolen)
+#include "ax25.h"
+
+int ax25_constructPacket(char* packet, char* dest, char* source, char* info, int infolen)
 {
-	char packet[255];
 	// Assemble AX.25 UI-Frame
+	// See http://www.aprs.org/doc/APRS101.PDF for information on how the packet is concstructed
+	
 	// Flag (1 Byte)
 	packet[0] = 0x7e;	// First Byte is always 0x7e
 
@@ -20,7 +23,7 @@ void ax25_constructPacket(char** dest, char** source, char** info, int infolen)
 	}
 
 	// Digipeater Adresses (0-58 Bytes)
-	// No bytes, we don't need to set this (I think)
+	// No bytes, we don't need to set this
 
 	// Control Field (UI) (1 Byte)
 	packet[15] = 0x03;
@@ -39,15 +42,15 @@ void ax25_constructPacket(char** dest, char** source, char** info, int infolen)
 	}
 	else
 	{
-		return;
+		return 1;
 	}
+
 	// FCS (2 Bytes)
 	// TODO: Actually calculate CRC for packet here
 	packet[17+infolen+1] = 0x00;
 	packet[17+infolen+2] = 0x00;
 
-
 	// Flag (1 Byte)
 	packet[17+infolen+3] = 0x7e;	// Last byte is always 0x7e
-
+	return 0;
 }
