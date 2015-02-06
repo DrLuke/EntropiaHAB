@@ -44,14 +44,20 @@ int main(void)
 		dac_tone(2200);
 		gpio_toggle(GPIOC, GPIO8);
 
-		for (i = 0; i < 500000; i++) 
+		for (i = 0; i < 50000; i++) 
 		{
 			__asm__("NOP");
 		}
 
 
 		dac_tone(1200);
-		for (i = 0; i < 500000; i++) 
+		for (i = 0; i < 50000; i++) 
+		{
+			__asm__("NOP");
+		}
+
+		dac_tone(0);
+		for (i = 0; i < 50000; i++) 
 		{
 			__asm__("NOP");
 		}
