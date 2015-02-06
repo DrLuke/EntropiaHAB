@@ -13,6 +13,7 @@ BINARY = src/tracker
 
 OBJS += ${BINARY}.o
 OBJS += src/ax25.o
+OBJS += src/dac.o
 
 #************* CFlags
 CFLAGS += -Wall -g -O2 -std=c99

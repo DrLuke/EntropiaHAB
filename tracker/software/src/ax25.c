@@ -4,7 +4,8 @@ int ax25_constructPacket(char* packet, char* dest, char* source, char* info, int
 {
 	// Assemble AX.25 UI-Frame
 	// See http://www.aprs.org/doc/APRS101.PDF for information on how the packet is concstructed
-	
+	crc_reset();
+
 	// Flag (1 Byte)
 	packet[0] = 0x7e;	// First Byte is always 0x7e
 
@@ -36,8 +37,8 @@ int ax25_constructPacket(char* packet, char* dest, char* source, char* info, int
 	{
 		for(int i = 0; i < infolen; i++)
 		{
-			// Offset packet index by 17
-			packet[i+17] = source[i];
+			packet[i+17] = source[i];	// Offset packet index by 17
+
 		}
 	}
 	else
@@ -46,9 +47,9 @@ int ax25_constructPacket(char* packet, char* dest, char* source, char* info, int
 	}
 
 	// FCS (2 Bytes)
-	// TODO: Actually calculate CRC for packet here
-	packet[17+infolen+1] = 0x00;
-	packet[17+infolen+2] = 0x00;
+	int crc = crc_calculate_block((uint32_t*)packet+1, infolen + 16);	// CRC between first flag and FCS field
+	packet[17+infolen+1] = (crc & 0xFF);	// LSB first
+	packet[17+infolen+2] = ((crc >> 8) & 0xFF);	// MSB last
 
 	// Flag (1 Byte)
 	packet[17+infolen+3] = 0x7e;	// Last byte is always 0x7e
