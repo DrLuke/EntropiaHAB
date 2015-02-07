@@ -14,9 +14,10 @@ BINARY = src/tracker
 OBJS += ${BINARY}.o
 OBJS += src/ax25.o
 OBJS += src/dac.o
+OBJS += src/aprs.o
 
 #************* CFlags
-CFLAGS += -Wall -g -O2 -std=c99
+CFLAGS += -Wall -g -O0 -std=c99
 
 CFLAGS += -DSTM32F0
 
@@ -29,6 +30,7 @@ LDFLAGS += -Wl,-Map=$(*).map
 LDFLAGS += -I/usr/arm-none-eabi/include
 LDFLAGS += -L/usr/arm-none-eabi/lib
 
+
 LDLIBS = -lopencm3_stm32f0
 
 #************
@@ -38,7 +40,7 @@ ARCHFLAGS = -mthumb -mcpu=cortex-m0 -msoft-float
 .PHONY: clean
 
 all: elf bin flash
-	rm -rf *.o
+
 
 elf: ${BINARY}.elf
 

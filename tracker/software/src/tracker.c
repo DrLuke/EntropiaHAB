@@ -9,6 +9,9 @@
 #include "settings.h"
 #include "ax25.h"
 #include "dac.h"
+#include "aprs.h"
+
+#define NOP __asm__("nop")
 
 static void gpio_setup(void)
 {
@@ -27,39 +30,33 @@ static void gpio_setup(void)
 int main(void)
 {
 	rcc_clock_setup_in_hsi_out_48mhz();
-	int i;
-	int c = 0x00;
 
 	gpio_setup();
 	gpio_set(PORT_LED, PIN_LED);
 
 
 	
-	dac_setup();
-	dac_tone(2000);
 
-	/* Blink the LED (PC8) on the board. */
+	dac_setup();
+	dac_tone(100);
+
+	char packet[3];
+
+	packet[0] = 0x01;
+	packet[1] = 0x01;
+	packet[2] = 0x01;	
+
+
+	aprs_sendPacket(packet, 3);
+	
+	
+
 	for(;;)
 	{
-		dac_tone(2200);
-		gpio_toggle(GPIOC, GPIO8);
-
-		for (i = 0; i < 50000; i++) 
+		
+		for(int a = 0; a < 50000; a++)
 		{
-			__asm__("NOP");
-		}
-
-
-		dac_tone(1200);
-		for (i = 0; i < 50000; i++) 
-		{
-			__asm__("NOP");
-		}
-
-		dac_tone(0);
-		for (i = 0; i < 50000; i++) 
-		{
-			__asm__("NOP");
+			NOP;
 		}
 	}
 
