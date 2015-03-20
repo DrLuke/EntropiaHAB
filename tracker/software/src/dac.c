@@ -22,7 +22,7 @@ const uint16_t sineLut[LUTVALUES] = {
 586,731,889,1057,1235,1419,1610,1804
 };
 
-static int lutIndex = 0;	// current index of LUT
+volatile static int lutIndex = 0;	// current index of LUT
 
 void dac_setup(void)
 {
@@ -50,6 +50,7 @@ void dac_tone(int hz)
 	if(hz == 0)
 	{
 		// Disable DAC and TIM6
+		lutindex = 0;	// Start with phase 0 when resuming operation after shutdown
 		dac_load_data_buffer_single(0, RIGHT12, CHANNEL_1);	// Clean shutoff
 		dac_software_trigger(CHANNEL_1);	
 		dac_disable(CHANNEL_1);

@@ -3,10 +3,35 @@
 #include <libopencm3/stm32/timer.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/cm3/nvic.h>
+
+#ifdef __APRS_C_DEBUG_FRAME
 #include <libopencm3/stm32/gpio.h>
+#endif
 
-volatile static bool nextBitReady = true;
+volatile static bool nextBitReady = true;	// Stores whether or not the next bit can be sent
 
+
+/**********************************************************
+ * aprs_sendpacket
+ *
+ * Purpose: Outputs a datapacket as tones of 1.2kHz and 2.2kHz
+ *
+ * Operation: 
+ *  1.) Set up timers and interrupts for 1200 baud timing
+ *  2.) Iterate through each byte of packet
+ *  3.) Iterate through each bit of packet
+ *  4.) Extract current bit from current byte
+ *  5.) If the bit is 0, change the tone, otherwise don't
+ *  6.) Wait until the current bit is transmitted.
+ *  7.) Set the tone for the next bit
+ *  8.) Check if 5 consecutive ones have been transmitted
+ *  9.) If so, transmit an extra zero is transmitted next
+ * 10.) Wait for the last bit to finish transmitting
+ * 11.) Reset all timers and disable tone output
+ *
+ * Author: Lukas 'DrLuke' Jackowski
+ * Last modified: 08.02.2015
+ **********************************************************/
 void aprs_sendPacket(char packet[], int packetLen)
 {
 	timer_reset(TIM2);				// Reset all settings
@@ -18,25 +43,48 @@ void aprs_sendPacket(char packet[], int packetLen)
 
 	timer_enable_counter(TIM2);
 
-
+	char tone = 0;	// 0 = 2200 Hz, 1 = 1200 Hz
+	char oneCount = 0;	// Count the number of ones that occur for bit stuffing
+	
 	for(int bytei = 0; bytei < packetLen; bytei++)
 	{
 		for(int biti = 0; biti < 8; biti++)
 		{
-			char bit = (packet[bytei] >> (7-biti)) & 0x01;	// Extract bit to transmit
+			char bit = (packet[bytei] >> biti) & 0x01;	// Extract bit to transmit
 			// Bell 202 Modem frequencies
+			tone ^= (~bit) & 0x01;	// Toggle tone if bit is 0, don't if bit is 1
+			oneCount += bit;	// Count the amount of ones
+			
 			while(!nextBitReady);	// Wait until the next bit can be sent
-			if(bit)			// If bit = 1, send 1.2kHz tone
+			if(tone)		// If tone = 0, send 2.2 khz tone
 			{
 				dac_tone(1200);
 			}
-			else			// If bit = 0, send 2.2 kHz tone
+			else			// If tone = 0, send 1.2 kHz tone
 			{
 				dac_tone(2200);
 			}
 			nextBitReady = false;
+
+
+			if(oneCount == 5)	// If we just transmitted the 5th one, transmit a 0
+			{
+				tone ^= 0x01;
+				while(!nextBitReady);
+				if(tone)
+				{
+					dac_tone(1200);
+				}
+				else
+				{
+					dac_tone(2200);
+				}
+				nextBitReady = false;
+				oneCount = 0;
+			}
 		}
 	}
+
 	while(!nextBitReady);			// Wait for last bit to be transmitted
 	
 	dac_tone(0);				// Disable DAC output
@@ -46,9 +94,19 @@ void aprs_sendPacket(char packet[], int packetLen)
 }
 
 
+/**********************************************************
+ * tim2_isr(void)
+ * 
+ * Purpose: Set "nextBitReady" to true when next bit can be transmitted
+ *
+ * Author: Lukas 'DrLuke' Jackowski
+ * Last Modidied: 08.02.2015
+ **********************************************************/
 void tim2_isr(void)
 {
 	timer_clear_flag(TIM2, TIM_SR_UIF);	// Clear Interrupt
 	nextBitReady = true;	// Allow transmission of next bit
-	gpio_toggle(GPIOC, GPIO8);
+	#ifdef __APRS_C_DEBUG_FRAME
+	gpio_toggle(GPIOC,GPIO8);
+	#endif
 }
