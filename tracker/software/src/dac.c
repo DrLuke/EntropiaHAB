@@ -50,7 +50,7 @@ void dac_tone(int hz)
 	if(hz == 0)
 	{
 		// Disable DAC and TIM6
-		lutindex = 0;	// Start with phase 0 when resuming operation after shutdown
+		lutIndex = 0;	// Start with phase 0 when resuming operation after shutdown
 		dac_load_data_buffer_single(0, RIGHT12, CHANNEL_1);	// Clean shutoff
 		dac_software_trigger(CHANNEL_1);	
 		dac_disable(CHANNEL_1);
