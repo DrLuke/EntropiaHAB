@@ -1,3 +1,4 @@
+TOPDIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 PREFIX		= arm-none-eabi
 
 CC		:= $(PREFIX)-gcc
@@ -47,8 +48,8 @@ elf: ${BINARY}.elf
 bin: ${BINARY}.bin
 
 
-flash:
-	#Something with openocd here
+flash: bin
+	echo "reset halt; flash write_image erase unlock $(TOPDIR)/src/tracker.bin 0x8000000; reset" | nc 127.0.0.1 4444
 
 clean:
 	rm -rf *.o
