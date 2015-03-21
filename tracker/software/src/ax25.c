@@ -9,7 +9,7 @@ static uint16_t crc16(uint8_t *data, unsigned int len)
 
                 for (uint8_t i = 0x01; i & 0xff; i <<= 1)
 		{
-			crc ^= c & i;
+			crc ^= !!(c & i);
                         if(crc & 1)
                                 crc = (crc >> 1) ^ 0x8408;
                         else
