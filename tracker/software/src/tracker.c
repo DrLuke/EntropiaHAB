@@ -33,29 +33,11 @@ int main(void)
 	rcc_clock_setup_in_hsi_out_48mhz();
 
 	gpio_setup();
-	gpio_set(PORT_LED, PIN_LED);
-
-
-	
-
 	dac_setup();
 	systick_setup();
-	dac_tone(100);
-
-	char packet[3];
-
-	packet[0] = 0x01;
-	packet[1] = 0x01;
-	packet[2] = 0x01;	
-
-
-	aprs_sendPacket(packet, 3);
-	
-	
 
 	for(;;)
 	{
-		
 		for(int a = 0; a < 50000; a++)
 		{
 			NOP;
