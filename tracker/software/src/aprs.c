@@ -53,11 +53,16 @@ void aprs_sendPacket(char packet[], int packetLen)
 			char bit = (packet[bytei] >> biti) & 0x01;	// Extract bit to transmit
 			// Bell 202 Modem frequencies
 			tone ^= (~bit) & 0x01;	// Toggle tone if bit is 0, don't if bit is 1
+			// Count the amount of consecutive ones
 			if(bit)
-				oneCount++;	// Count the amount of ones
+				oneCount++;
 			else
 				oneCount = 0;
-			
+
+			// disable bit stuffing for flag bytes
+			if(packet[bytei] == 0x7e)
+				oneCount = 0;
+
 			while(!nextBitReady);	// Wait until the next bit can be sent
 			if(tone)		// If tone = 0, send 2.2 khz tone
 			{
