@@ -10,6 +10,7 @@
 #include "ax25.h"
 #include "dac.h"
 #include "aprs.h"
+#include "systick.h"
 
 #define NOP __asm__("nop")
 
@@ -38,6 +39,7 @@ int main(void)
 	
 
 	dac_setup();
+	systick_setup();
 	dac_tone(100);
 
 	char packet[3];
