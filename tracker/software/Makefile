@@ -16,6 +16,7 @@ OBJS += ${BINARY}.o
 OBJS += src/ax25.o
 OBJS += src/dac.o
 OBJS += src/aprs.o
+OBJS += src/systick.o
 
 #************* CFlags
 CFLAGS += -Wall -g -O0 -std=c99
