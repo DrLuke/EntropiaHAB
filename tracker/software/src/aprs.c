@@ -1,4 +1,5 @@
 #include "aprs.h"
+#include "ax25.h"
 
 #include <libopencm3/stm32/timer.h>
 #include <libopencm3/stm32/rcc.h>
@@ -9,6 +10,26 @@
 #endif
 
 volatile static bool nextBitReady = true;	// Stores whether or not the next bit can be sent
+
+/**********************************************************
+ * aprs_transmitPacket
+ *
+ * Purpose: Convenience method
+ *
+ * Operation:
+ *  1.) Construct ax.25 packet using the data provided in packetData
+ *  2.) Send the packet out via aprs_sendPacket
+ *
+ */
+
+void aprs_transmitPacket(struct aprsPacket* packetData)
+{
+	uint8_t packet[300];	// TODO: find out maximum packet length
+	int packetlen = ax25_constructPacket(packet, packetData);
+	
+	aprs_sendPacket(packet, packetlen);
+	
+}
 
 
 /**********************************************************
@@ -29,10 +50,8 @@ volatile static bool nextBitReady = true;	// Stores whether or not the next bit 
  * 10.) Wait for the last bit to finish transmitting
  * 11.) Reset all timers and disable tone output
  *
- * Author: Lukas 'DrLuke' Jackowski
- * Last modified: 08.02.2015
  **********************************************************/
-void aprs_sendPacket(char packet[], int packetLen)
+void aprs_sendPacket(uint8_t packet[], int packetLen)
 {
 	timer_reset(TIM2);				// Reset all settings
 	rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_TIM2EN);	// Enable clock to timer
@@ -43,14 +62,14 @@ void aprs_sendPacket(char packet[], int packetLen)
 
 	timer_enable_counter(TIM2);
 
-	char tone = 0;	// 0 = 2200 Hz, 1 = 1200 Hz
-	char oneCount = 0;	// Count the number of ones that occur for bit stuffing
+	uint8_t tone = 0;	// 0 = 2200 Hz, 1 = 1200 Hz
+	uint8_t oneCount = 0;	// Count the number of ones that occur for bit stuffing
 	
 	for(int bytei = 0; bytei < packetLen; bytei++)
 	{
 		for(int biti = 0; biti < 8; biti++)
 		{
-			char bit = (packet[bytei] >> biti) & 0x01;	// Extract bit to transmit
+			uint8_t bit = (packet[bytei] >> biti) & 0x01;	// Extract bit to transmit
 			// Bell 202 Modem frequencies
 			tone ^= (~bit) & 0x01;	// Toggle tone if bit is 0, don't if bit is 1
 			// Count the amount of consecutive ones
@@ -107,8 +126,6 @@ void aprs_sendPacket(char packet[], int packetLen)
  * 
  * Purpose: Set "nextBitReady" to true when next bit can be transmitted
  *
- * Author: Lukas 'DrLuke' Jackowski
- * Last Modidied: 08.02.2015
  **********************************************************/
 void tim2_isr(void)
 {
