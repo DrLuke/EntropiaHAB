@@ -20,54 +20,61 @@ static uint16_t crc16(uint8_t *data, unsigned int len)
         return (~crc) & 0xffff;
 }
 
-int ax25_constructPacket(char* packet, char* dest, char* source, char* info, int infolen)
+int ax25_constructPacket(uint8_t* packet, struct aprsPacket* packetData)
 {
-	// Flag (1 Byte)
+	// Flag (1 Byte) (repeated 3 times to make sure that a listening device can lock on)
 	packet[0] = 0x7e;	// First Byte is always 0x7e
-
+	packet[1] = 0x7e;
+	packet[2] = 0x7e;
+	
 	// Destination Address (7 Bytes)
-	for(int i = 0; i < 7; i++)
+	#define __DEST_OFFSET 3
+	int i;
+	for(i = 0; (i < 6) || packet[i + __DEST_OFFSET] != '\0'; i++)
 	{
-		// Offset packet index by 1
-		packet[i+1] = dest[i];
+		packet[i + __DEST_OFFSET] = packetData->source[i] << 1;
 	}
+	for(; i < 6; i++)	// If the Address is shorter than 6 characters, pad the rest with spaces
+	{
+		packet[i + __DEST_OFFSET] = ' ' << 1;	// Pad the rest of the address field with spaces
+	}
+	packet[__DEST_OFFSET + 7] = (('0' + packetData->sourceID) << 1);	// Add SSID
 
+	#define __SOURCE_OFFSET (__DEST_OFFSET + 7)
 	// Source Address (7 Bytes)
-	for(int i = 0; i < 7; i++)
+	for(i = 0; (i < 6) || packet[i + __SOURCE_OFFSET] != '\0'; i++)
 	{
-		// Offset packet index by 8
-		packet[i+8] = source[i];
+		packet[i + __SOURCE_OFFSET] = packetData->source[i] << 1;
 	}
-
+	for(; i < 6; i++)
+	{
+		packet[i + __SOURCE_OFFSET] = ' ' << 1;	// Pad the rest of the address field with spaces
+	}
+	packet[__SOURCE_OFFSET + 7] = (('0' + packetData->sourceID) << 1) | 1;	// Add SSID and "Last in Sequence" Signal bit
+	
 	// Digipeater Adresses (0-58 Bytes)
 	// No bytes, we don't need to set this
 
 	// Control Field (UI) (1 Byte)
-	packet[15] = 0x03;
+	packet[__SOURCE_OFFSET+8] = 0x03;
 
 	// Protocol ID (1 Byte)
-	packet[16] = 0xf0;
+	packet[__SOURCE_OFFSET+9] = 0xf0;
 
 	// Information Field (1-256 Bytes)
-	if(infolen > 0 && infolen < 256)	// Check if the information field length is correct
+	#define __INFO_OFFSET (__SOURCE_OFFSET + 10)	
+	int infoIndx = 0;
+	while((infoIndx < 256) || (packetData->info[infoIndx] != '\0') )
 	{
-		for(int i = 0; i < infolen; i++)
-		{
-			packet[i+17] = source[i];	// Offset packet index by 17
-
-		}
+		packet[infoIndx++ + __INFO_OFFSET] = packetData->info[infoIndx];
 	}
-	else
-	{
-		return 1;
-	}
-
+	
 	// FCS (2 Bytes)
-	int crc = crc16((uint8_t*)packet+1, infolen + 16);	// CRC between first flag and FCS field
-	packet[17+infolen+1] = (crc & 0xFF);	// LSB first
-	packet[17+infolen+2] = ((crc >> 8) & 0xFF);	// MSB last
+	int crc = crc16((uint8_t*)packet+3, infoIndx + 17);	// CRC between first flag and FCS field
+	packet[17+infoIndx+1] = (crc & 0xFF);	// LSB first
+	packet[17+infoIndx+2] = ((crc >> 8) & 0xFF);	// MSB last
 
 	// Flag (1 Byte)
-	packet[17+infolen+3] = 0x7e;	// Last byte is always 0x7e
+	packet[17+infoIndx+3] = 0x7e;	// Last byte is always 0x7e
 	return 0;
 }
