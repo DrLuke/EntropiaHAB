@@ -17,18 +17,17 @@ volatile static bool nextBitReady = true;	// Stores whether or not the next bit 
  * Purpose: Convenience method
  *
  * Operation:
- *  1.) Construct ax.25 packet using the data provided in packetData
+ *  1.) Construct ax.25 packet using the data provided using ax25_constructPacket
  *  2.) Send the packet out via aprs_sendPacket
  *
  */
 
-void aprs_transmitPacket(struct aprsPacket* packetData)
+void aprs_transmitPacket(uint8_t* dest, uint8_t destSSID, uint8_t* src, uint8_t srcSSID, uint8_t* info)
 {
 	uint8_t packet[300];	// TODO: find out maximum packet length
-	int packetlen = ax25_constructPacket(packet, packetData);
+	int packetlen = ax25_constructPacket(packet, dest, destSSID, src, srcSSID, info);
 	
 	aprs_sendPacket(packet, packetlen);
-	
 }
 
 

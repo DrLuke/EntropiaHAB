@@ -2,6 +2,7 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/dac.h>
+#include <string.h>
 
 #define PORT_LED GPIOC
 #define PIN_LED GPIO8
@@ -36,12 +37,16 @@ int main(void)
 	dac_setup();
 	systick_setup();
 
+	aprs_transmitPacket("TEST",11,"TEST",11,"HELLO WORLD");	// Test packet
+
 	for(;;)
 	{
 		for(int a = 0; a < 50000; a++)
 		{
 			NOP;
 		}
+		gpio_toggle(PORT_LED, PIN_LED);
+
 	}
 
 	return 0;
