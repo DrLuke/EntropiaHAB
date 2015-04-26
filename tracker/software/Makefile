@@ -17,17 +17,17 @@ OBJS += src/ax25.o
 OBJS += src/dac.o
 OBJS += src/aprs.o
 OBJS += src/systick.o
-OBJS += ${OPENFATDIR}stm32/mmc.o
+OBJS += ${OPENFATDIR}/stm32/mmc.o
 
 #************* Libopenfat
-OPENFATDIR = src/openfat/
+OPENFATDIR = src/openfat
 LIBOPENFAT = src/libopenfat.a
 
 #************* CFlags
 CFLAGS += -Wall -g -O0 -std=c99
 CFLAGS += -DSTM32F0
-CFLAGS += -I${OPENFATDIR}include
-CFLAGS += -I${OPENFATDIR}stm32/f0/ 
+CFLAGS += -I${OPENFATDIR}/include
+CFLAGS += -I${OPENFATDIR}/stm32 
 
 #************* Linker Flags
 LDSCRIPT = stm32f0-discovery.ld
@@ -37,7 +37,7 @@ LDFLAGS += --static -nostartfiles
 LDFLAGS += -Wl,-Map=$(*).map
 LDFLAGS += -I/usr/arm-none-eabi/include
 LDFLAGS += -L/usr/arm-none-eabi/lib
-LDFLAGS += -I${OPENFATDIR}include
+LDFLAGS += -I${OPENFATDIR}/include
 
 
 LDLIBS = -lopencm3_stm32f0
@@ -75,7 +75,7 @@ ${OPENFATDIR}${LIBOPENFAT}:
 %.o : %.c
 	${CC} ${CFLAGS} ${ARCHFLAGS} -o $(*).o -c $(*).c
 
-%.elf %.map: ${OBJS} ${OPENFATDIR}${LIBOPENFAT}
+%.elf %.map: ${OBJS} ${OPENFATDIR}/${LIBOPENFAT}
 	${LD} ${LDFLAGS} ${ARCHFLAGS} ${OBJS} ${LDLIBS} -o $(*).elf
 
 %.bin: %.elf
