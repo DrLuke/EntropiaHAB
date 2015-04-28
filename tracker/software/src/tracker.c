@@ -13,13 +13,6 @@
 #include "aprs.h"
 #include "systick.h"
 
-// Openfat stuff
-#include "openfat.h"
-#include "openfat/mbr.h"
-#include "mmc.h"
-
-
-
 #define NOP __asm__("nop")
 
 static void gpio_setup(void)

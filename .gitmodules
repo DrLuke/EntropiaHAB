@@ -1,3 +1,0 @@
-[submodule "tracker/software/src/openfat"]
-	path = tracker/software/src/openfat
-	url = https://github.com/DrLuke/openfat.git
